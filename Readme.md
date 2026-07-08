@@ -17,11 +17,14 @@ read as plain resources).
 | Windows  | `MXFInspect-win-x64.exe` (self-contained, single file) |
 | macOS    | `MXFInspect-macos.dmg` (Apple Silicon) |
 
-On Linux the **AppImage** is the easiest option on a normal desktop. If it does
-not start (e.g. you run as root, are in a container, or have no/old FUSE — the
-symptom is *"Cannot mount AppImage"* or *"This doesn't look like a squashfs
-image"*), use the **tar.gz** instead — it needs neither FUSE nor the AppImage
-runtime:
+On Linux the **AppImage** is the easiest option on a normal desktop. It is built
+on [uruntime](https://github.com/VHSgunzo/uruntime), so it integrates with
+AppImageLauncher/libappimage, mounts via its own bundled squashfuse, and falls
+back to extract-and-run automatically when FUSE is unavailable.
+
+If you still prefer not to rely on the AppImage at all (e.g. you run as root, are
+in a minimal container, or hit an unusual FUSE setup), use the **tar.gz**
+instead — it needs neither FUSE nor the AppImage runtime:
 
 ```bash
 mkdir mxfinspect && tar -xzf MXFInspect-linux-x64.tar.gz -C mxfinspect

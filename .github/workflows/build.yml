@@ -57,6 +57,10 @@ jobs:
             -o publish/${{ matrix.rid }}
 
       # ---------- Linux: AppImage + FUSE-free tarball ----------
+      - name: Install squashfs-tools
+        if: matrix.kind == 'appimage'
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools
+
       - name: Package AppImage
         if: matrix.kind == 'appimage'
         run: |
