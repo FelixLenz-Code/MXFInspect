@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 #
-# Builds a Linux AppImage from a self-contained publish of MXFInspect.
-#
-# Rather than executing appimagetool (which needs FUSE and is easily blocked by
-# AppImageLauncher on developer machines), this squashes the AppDir with
-# mksquashfs and prepends the static AppImage type-2 runtime. That works
-# unchanged on CI runners and locally.
+# Builds a Linux AppImage from a self-contained publish of MXFInspect using the
+# official appimagetool (the reference implementation), which pairs a compatible
+# runtime with a gzip squashfs that every squashfuse/libappimage build can read.
 #
 # Usage: build/linux/build-appimage.sh <publish-dir> <output-dir> [arch]
 #   <publish-dir>  directory containing the published MXFInspect executable
 #   <output-dir>   where the resulting .AppImage is written
-#   [arch]         runtime arch (default: x86_64)
+#   [arch]         AppImage arch tag (default: x86_64)
 #
 set -euo pipefail
 
@@ -42,23 +39,25 @@ EOF
 chmod +x "$APPDIR/AppRun"
 chmod +x "$APPDIR/usr/bin/MXFInspect" || true
 
-# Fetch the static AppImage runtime (no FUSE, no execution of an AppImage).
-RUNTIME="$WORK/runtime-$ARCH"
-echo ">> Downloading AppImage runtime ($ARCH)"
-curl -fsSL -o "$RUNTIME" \
-    "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-$ARCH"
-
-echo ">> Squashing AppDir"
-SQFS="$WORK/app.squashfs"
-# Use xz (not zstd): the libappimage used by AppImageLauncher for desktop
-# integration only understands xz/zlib, so zstd images fail to register.
-mksquashfs "$APPDIR" "$SQFS" -root-owned -noappend -quiet -comp xz \
-    -b 1M -Xdict-size 100%
+# Fetch appimagetool if it is not already on PATH.
+APPIMAGETOOL="$(command -v appimagetool || true)"
+if [ -z "$APPIMAGETOOL" ]; then
+    echo ">> Downloading appimagetool"
+    APPIMAGETOOL="$WORK/appimagetool"
+    curl -fsSL -o "$APPIMAGETOOL" \
+        "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage"
+    chmod +x "$APPIMAGETOOL"
+fi
 
 mkdir -p "$OUTPUT_DIR"
 OUT="$OUTPUT_DIR/MXFInspect-${ARCH}.AppImage"
-echo ">> Writing $OUT"
-cat "$RUNTIME" "$SQFS" > "$OUT"
-chmod +x "$OUT"
+
+# Avoid AppImageLauncher hijacking; force gzip for maximum reader compatibility.
+export APPIMAGELAUNCHER_DISABLE=1
+export ARCH
+
+echo ">> Building $OUT with appimagetool"
+# --appimage-extract-and-run runs appimagetool without needing FUSE (CI runners).
+"$APPIMAGETOOL" --appimage-extract-and-run --comp gzip --no-appstream "$APPDIR" "$OUT"
 
 echo ">> Done: $OUT ($(du -h "$OUT" | cut -f1))"

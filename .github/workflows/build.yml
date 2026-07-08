@@ -70,6 +70,15 @@ jobs:
           chmod +x "publish/${{ matrix.rid }}/MXFInspect" || true
           tar -czf "dist/MXFInspect-linux-x64.tar.gz" -C "publish/${{ matrix.rid }}" .
 
+      - name: Verify AppImage is extractable
+        if: matrix.kind == 'appimage'
+        run: |
+          cd dist
+          ./MXFInspect-x86_64.AppImage --appimage-extract >/dev/null
+          test -x squashfs-root/usr/bin/MXFInspect
+          echo "AppImage extraction verified OK"
+          rm -rf squashfs-root
+
       # ---------- Windows: single-file exe ----------
       - name: Package Windows exe
         if: matrix.kind == 'exe'
