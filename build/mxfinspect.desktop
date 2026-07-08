@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=MXFInspect
+GenericName=MXF Structure Viewer
+Comment=Display the internal structure of MXF (Material eXchange Format) files
+Exec=MXFInspect %f
+Icon=mxfinspect
+Terminal=false
+Categories=AudioVideo;Utility;
+MimeType=application/mxf;
+Keywords=MXF;broadcast;SMPTE;KLV;media;

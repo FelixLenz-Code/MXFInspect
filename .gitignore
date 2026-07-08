@@ -347,3 +347,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Cross-platform build/publish output
+/publish/
+/dist/
