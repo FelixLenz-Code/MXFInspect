@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MXFInspect.Avalonia.Views.AboutWindow"
+        Width="440" Height="300"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Title="About MXFInspect">
+    <StackPanel Margin="24" Spacing="12">
+        <TextBlock Text="MXFInspect" FontSize="22" FontWeight="Bold" />
+        <TextBlock Text="Cross-platform viewer for the internal structure of MXF (Material eXchange Format) files."
+                   TextWrapping="Wrap" />
+        <TextBlock Text="Runs natively on Linux, Windows and macOS (Avalonia UI / .NET 8)." TextWrapping="Wrap" />
+        <TextBlock Text="Based on MXFInspect by Myriadbits / rayden84 / wruppelx." TextWrapping="Wrap" Opacity="0.8" />
+        <TextBlock Text="MXF library: Myriadbits.MXF 3.0" Opacity="0.8" />
+        <Button Content="Close" HorizontalAlignment="Right" Click="OnCloseClick" />
+    </StackPanel>
+</Window>

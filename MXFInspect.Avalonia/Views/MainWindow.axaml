@@ -1,0 +1,183 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MXFInspect.Avalonia.ViewModels"
+        xmlns:views="using:MXFInspect.Avalonia.Views"
+        x:Class="MXFInspect.Avalonia.Views.MainWindow"
+        x:CompileBindings="False"
+        Width="1200" Height="760"
+        Icon="/Assets/mxfinspect.ico"
+        Title="{Binding Title}">
+
+    <Window.Resources>
+        <views:HexDumpConverter x:Key="HexDump" />
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- Main menu -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open MXF…" Click="OnOpenClick" />
+                <MenuItem Header="_Close current" Command="{Binding CloseFileCommand}" CommandParameter="{Binding SelectedFile}" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="OnExitClick" />
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="Run _conformance test" Command="{Binding RunValidationCommand}" />
+                <MenuItem Header="_Export report…" Click="OnExportReportClick" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="Show offset as _hex"
+                          Click="OnToggleHexOffset"
+                          ToggleType="CheckBox"
+                          IsChecked="{Binding ShowOffsetAsHex}" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About MXFInspect…" Click="OnAboutClick" />
+            </MenuItem>
+        </Menu>
+
+        <!-- One tab per open file -->
+        <TabControl ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}">
+            <TabControl.ItemTemplate>
+                <DataTemplate DataType="vm:MxfFileViewModel">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Header}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+
+            <TabControl.ContentTemplate>
+                <DataTemplate DataType="vm:MxfFileViewModel">
+                    <Grid>
+                        <!-- Loading overlay -->
+                        <StackPanel IsVisible="{Binding IsLoading}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Spacing="10" Width="360">
+                            <TextBlock Text="{Binding Header}" HorizontalAlignment="Center" FontWeight="Bold" />
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" Height="16" />
+                            <TextBlock Text="{Binding Status}" HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Error message -->
+                        <TextBlock IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                   Text="{Binding ErrorMessage}"
+                                   Foreground="IndianRed" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                        <!-- Loaded content -->
+                        <Grid ColumnDefinitions="2*,Auto,3*" Margin="4">
+                            <Grid.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="!IsLoading" />
+                                    <Binding Path="ErrorMessage" Converter="{x:Static ObjectConverters.IsNull}" />
+                                </MultiBinding>
+                            </Grid.IsVisible>
+
+                            <!-- LEFT: filters + trees -->
+                            <DockPanel Grid.Column="0">
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                                    <TextBox Watermark="Filter…" Width="180"
+                                             Text="{Binding TypeFilter, Mode=TwoWay}" />
+                                    <CheckBox Content="Hide filler" IsChecked="{Binding ExcludeFiller, Mode=TwoWay}"
+                                              VerticalAlignment="Center" />
+                                    <Button Content="◀ Prev" Command="{Binding PreviousOfTypeCommand}"
+                                            ToolTip.Tip="Previous object of same type" />
+                                    <Button Content="Next ▶" Command="{Binding NextOfTypeCommand}"
+                                            ToolTip.Tip="Next object of same type" />
+                                </StackPanel>
+
+                                <TabControl>
+                                    <TabItem Header="Physical (offset)">
+                                        <TreeView ItemsSource="{Binding PhysicalRoot}"
+                                                  SelectionChanged="OnTreeSelectionChanged">
+                                            <TreeView.Styles>
+                                                <Style Selector="TreeViewItem">
+                                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                                </Style>
+                                            </TreeView.Styles>
+                                            <TreeView.ItemTemplate>
+                                                <TreeDataTemplate ItemsSource="{Binding Children}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding OffsetText}" Width="120"
+                                                                   Foreground="Gray" FontFamily="Cascadia Mono,Consolas,monospace" />
+                                                        <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" />
+                                                    </StackPanel>
+                                                </TreeDataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </TabItem>
+                                    <TabItem Header="Logical">
+                                        <TreeView ItemsSource="{Binding LogicalRoot}"
+                                                  SelectionChanged="OnTreeSelectionChanged">
+                                            <TreeView.Styles>
+                                                <Style Selector="TreeViewItem">
+                                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                                </Style>
+                                            </TreeView.Styles>
+                                            <TreeView.ItemTemplate>
+                                                <TreeDataTemplate ItemsSource="{Binding Children}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding OffsetText}" Width="120"
+                                                                   Foreground="Gray" FontFamily="Cascadia Mono,Consolas,monospace" />
+                                                        <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" />
+                                                    </StackPanel>
+                                                </TreeDataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </TabItem>
+                                </TabControl>
+                            </DockPanel>
+
+                            <GridSplitter Grid.Column="1" Width="6" Background="Transparent" />
+
+                            <!-- RIGHT: properties / hex / conformance -->
+                            <TabControl Grid.Column="2">
+                                <TabItem Header="Properties">
+                                    <DataGrid ItemsSource="{Binding Properties}"
+                                              IsReadOnly="True" GridLinesVisibility="Horizontal"
+                                              CanUserResizeColumns="True" HeadersVisibility="Column">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="160" />
+                                            <DataGridTextColumn Header="Property" Binding="{Binding Name}" Width="220" />
+                                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+
+                                <TabItem Header="Hex">
+                                    <ScrollViewer>
+                                        <TextBlock FontFamily="Cascadia Mono,Consolas,monospace" Padding="6">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{x:Static views:HexDumpMultiConverter.Instance}">
+                                                    <Binding Path="HexBytes" />
+                                                    <Binding Path="HexBaseOffset" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </ScrollViewer>
+                                </TabItem>
+
+                                <TabItem Header="Conformance">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                                            <Button Content="Run tests" Command="{Binding RunTestsCommand}" />
+                                        </StackPanel>
+                                        <DataGrid ItemsSource="{Binding Validations}"
+                                                  IsReadOnly="True" GridLinesVisibility="Horizontal"
+                                                  HeadersVisibility="Column">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="180" />
+                                                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="90" />
+                                                <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </DockPanel>
+                                </TabItem>
+                            </TabControl>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+    </DockPanel>
+</Window>
