@@ -58,6 +58,9 @@ export ARCH
 
 echo ">> Building $OUT with appimagetool"
 # --appimage-extract-and-run runs appimagetool without needing FUSE (CI runners).
-"$APPIMAGETOOL" --appimage-extract-and-run --comp gzip --no-appstream "$APPDIR" "$OUT"
+# Use appimagetool's default compressor (zstd): its bundled mksquashfs supports
+# only zstd, and the matching type-2 runtime reads it. Note: on systems whose
+# libappimage/squashfuse is too old for zstd, use the FUSE-free tar.gz instead.
+"$APPIMAGETOOL" --appimage-extract-and-run --no-appstream "$APPDIR" "$OUT"
 
 echo ">> Done: $OUT ($(du -h "$OUT" | cut -f1))"
