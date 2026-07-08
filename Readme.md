@@ -1,5 +1,50 @@
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
+# Cross-platform rewrite (Linux / Windows / macOS)
+
+This branch adds a **cross-platform version** of MXFInspect that runs natively on
+**Linux, Windows and macOS**. The original Windows-only WinForms GUI has been
+rewritten in [Avalonia UI](https://avaloniaui.net/) on **.NET 8**, while the
+proven MXF parsing library (`Myriadbits.MXF`) is reused after porting it off its
+last Windows-specific dependency (the SMPTE registry files are now embedded and
+read as plain resources).
+
+**What you get:**
+
+| Platform | Artifact |
+|----------|----------|
+| Linux    | `MXFInspect-x86_64.AppImage` |
+| Windows  | `MXFInspect-win-x64.exe` (self-contained, single file) |
+| macOS    | `MXFInspect-macos.dmg` (Apple Silicon) |
+
+The GitHub Actions workflow [`build.yml`](.github/workflows/build.yml) builds and
+uploads all three on every push, and attaches them to a GitHub Release when a
+`v*` tag is pushed.
+
+**Feature parity with the original:** physical (offset) and logical trees,
+syntax colouring per MXF object type, read-only property grid, hex viewer,
+type/filler filters, prev/next navigation between objects of the same type, the
+conformance/validation report with text export, multiple files in tabs, and
+persisted settings.
+
+**Build it yourself:**
+
+```bash
+# run the parser regression tests
+dotnet test MXFInspect.Tests/MXFInspect.Tests.csproj
+
+# run the app
+dotnet run --project MXFInspect.Avalonia/MXFInspect.Avalonia.csproj
+
+# produce a Linux AppImage
+dotnet publish MXFInspect.Avalonia/MXFInspect.Avalonia.csproj -c Release -r linux-x64 \
+  --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+  -o publish/linux-x64
+build/linux/build-appimage.sh publish/linux-x64 dist
+```
+
+The sections below describe the original Windows application.
+
 # Preface
 This is a fork of the wonderful project [MXF Inspect](https://github.com/Myriadbits/MXFInspect) created by Jochem Bakker. Unfortunately he is not responding to merge requests anymore and the original project seems to be dead :cry:. This fork tries to keep the project alive, as I have implemented a couple of improvements w.r.t. the original.
 
