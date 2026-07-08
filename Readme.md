@@ -13,9 +13,24 @@ read as plain resources).
 
 | Platform | Artifact |
 |----------|----------|
-| Linux    | `MXFInspect-x86_64.AppImage` |
+| Linux    | `MXFInspect-x86_64.AppImage`, or `MXFInspect-linux-x64.tar.gz` |
 | Windows  | `MXFInspect-win-x64.exe` (self-contained, single file) |
 | macOS    | `MXFInspect-macos.dmg` (Apple Silicon) |
+
+On Linux the **AppImage** is the easiest option on a normal desktop. If it does
+not start (e.g. you run as root, are in a container, or have no/old FUSE — the
+symptom is *"Cannot mount AppImage"* or *"This doesn't look like a squashfs
+image"*), use the **tar.gz** instead — it needs neither FUSE nor the AppImage
+runtime:
+
+```bash
+mkdir mxfinspect && tar -xzf MXFInspect-linux-x64.tar.gz -C mxfinspect
+./mxfinspect/MXFInspect
+```
+
+If the window flashes and disappears because of a broken GPU/OpenGL driver, force
+software rendering: `MXFINSPECT_RENDER=software ./mxfinspect/MXFInspect`
+(startup errors are also logged to `~/.config/MXFInspect/crash.log`).
 
 The GitHub Actions workflow [`build.yml`](.github/workflows/build.yml) builds and
 uploads all three on every push, and attaches them to a GitHub Release when a
