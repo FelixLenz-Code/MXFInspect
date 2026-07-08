@@ -50,7 +50,10 @@ curl -fsSL -o "$RUNTIME" \
 
 echo ">> Squashing AppDir"
 SQFS="$WORK/app.squashfs"
-mksquashfs "$APPDIR" "$SQFS" -root-owned -noappend -quiet -comp zstd
+# Use xz (not zstd): the libappimage used by AppImageLauncher for desktop
+# integration only understands xz/zlib, so zstd images fail to register.
+mksquashfs "$APPDIR" "$SQFS" -root-owned -noappend -quiet -comp xz \
+    -b 1M -Xdict-size 100%
 
 mkdir -p "$OUTPUT_DIR"
 OUT="$OUTPUT_DIR/MXFInspect-${ARCH}.AppImage"
