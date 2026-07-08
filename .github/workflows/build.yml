@@ -56,12 +56,19 @@ jobs:
             -p:DebugType=none \
             -o publish/${{ matrix.rid }}
 
-      # ---------- Linux: AppImage ----------
+      # ---------- Linux: AppImage + FUSE-free tarball ----------
       - name: Package AppImage
         if: matrix.kind == 'appimage'
         run: |
           chmod +x build/linux/build-appimage.sh
           build/linux/build-appimage.sh publish/${{ matrix.rid }} dist x86_64
+
+      - name: Package Linux tarball (no FUSE required)
+        if: matrix.kind == 'appimage'
+        run: |
+          mkdir -p dist
+          chmod +x "publish/${{ matrix.rid }}/MXFInspect" || true
+          tar -czf "dist/MXFInspect-linux-x64.tar.gz" -C "publish/${{ matrix.rid }}" .
 
       # ---------- Windows: single-file exe ----------
       - name: Package Windows exe
