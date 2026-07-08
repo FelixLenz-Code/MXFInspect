@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Company>Myriadbits</Company>
-    <Description>MXF .NET Library</Description>
+    <Description>MXF .NET Library (cross-platform)</Description>
     <Copyright>Copyright © 2015 by Myriadbits.com</Copyright>
-    <PackageProjectUrl>https://github.com/rayden84/MXFInspect</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/rayden84/MXFInspect</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/wruppelx/MXFInspect</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/wruppelx/MXFInspect</RepositoryUrl>
     <PackageId>MXF Inspect Library</PackageId>
     <Authors>Jochem Bakker, rayden84</Authors>
     <Product>MXF Inspect</Product>
@@ -18,20 +18,27 @@
     <AssemblyName>Myriadbits.MXF</AssemblyName>
     <RootNamespace>Myriadbits.MXF</RootNamespace>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
+    <Nullable>annotations</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- SMPTE registry files are embedded and read at runtime via Properties/Resources.cs.
+       Explicit LogicalName keeps the resource names stable and platform-independent. -->
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    <EmbeddedResource Include="SMPTE\Elements.xml">
+      <LogicalName>Myriadbits.MXF.SMPTE.Elements.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SMPTE\Groups.xml">
+      <LogicalName>Myriadbits.MXF.SMPTE.Groups.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SMPTE\Labels.xml">
+      <LogicalName>Myriadbits.MXF.SMPTE.Labels.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SMPTE\Types.xml">
+      <LogicalName>Myriadbits.MXF.SMPTE.Types.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SMPTE\ANC Identifiers.csv">
+      <LogicalName>Myriadbits.MXF.SMPTE.ANC_Identifiers.csv</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 
