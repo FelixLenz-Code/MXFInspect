@@ -41,8 +41,11 @@ echo ">> Building $DMG"
 STAGE="$WORK/dmg"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
 
-hdiutil create -volname "MXFInspect" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+# Note: deliberately no "Applications" symlink here. hdiutil follows such a
+# symlink to /Applications while sizing the image, which pulls in the whole
+# folder and fails with "No space left on device" on CI runners. A DMG holding
+# just the .app is valid; users drag it to Applications themselves.
+hdiutil create -volname "MXFInspect" -srcfolder "$STAGE" -ov -format UDZO -fs HFS+ "$DMG"
 
 echo ">> Done: $DMG"
